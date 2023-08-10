@@ -124,6 +124,60 @@ user.get('/users', async(req, res) => {
     }
 })
 
+
+//endpoints for following someone 
+user.post('/follow/:id', isAuth,  async(req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id) 
+    const userToFollow = await User.findById(req.params.id) 
+
+    if(!currentUser || !userToFollow) {
+        res.status(404).json({message: "User not found"}) 
+        return
+    } 
+
+    currentUser.following.push(userToFollow) 
+    userToFollow.followers.push(currentUser) 
+    await userToFollow.save() 
+
+    const results = await currentUser.save() 
+    res.status(201).json(results)
+  }catch(err) {
+    console.log(err.message) 
+    res.status(500).json({message: err})
+  }
+})
+
+
+user.post('/unfollow/:id', isAuth, async(req, res) => {
+try {
+ const currentUser = await User.findById(req.user._id) 
+ const userToUnFollow = await User.findById(req.params.id) 
+
+ if(!currentUser || !userToUnFollow) {
+    res.status(404).json({message: "User not found"}) 
+    return
+ } 
+
+
+
+if(!currentUser.following.includes(userToUnFollow._id)) {
+    res.status(404).json({message: "you dont follow this user"}) 
+    return
+}
+
+  currentUser.following.pull(userToUnFollow) 
+  userToUnFollow.followers.pull(currentUser) 
+  userToUnFollow.save() 
+  const results = await currentUser.save() 
+
+ res.status(200).json(results)
+}catch(err) {
+    console.log(err.message) 
+    res.status(400).json(err.message)
+}
+})
+
 export default user
 
 
