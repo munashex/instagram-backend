@@ -5,7 +5,7 @@ import {v2 as cloudinary} from 'cloudinary'
 import multer from 'multer' 
 import fs from 'fs'  
 import isAuth from '../middlewares/authUser.js';
-import { Video } from '../models/VideosPost.js';
+
 
 
 cloudinary.config({
@@ -16,17 +16,9 @@ cloudinary.config({
 
 const upload = multer({dest: 'uploads/'}) 
 
-const uploadVideo = multer({
-    storage: multer.diskStorage({}),
-    fileFilter: (req, file, cb) => {
-      if (file.mimetype.startsWith('video')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Not a valid video file'));
-      }
-    },
-  });
-  
+
+
+
 //images Routes starts @ 29 line of code to 98 
 post.post('/image', isAuth, upload.single("image"), async(req, res) => {
 const {caption} = req.body   
@@ -47,7 +39,8 @@ const newImage = new ImagePost({
     caption, 
     image: results.secure_url, 
     public_id: results.public_id, 
-    user: req.user._id
+    user: req.user._id, 
+    username: req.user.username
 })
 
 await newImage.save() 
@@ -63,7 +56,7 @@ post.delete('/image/delete/:id', isAuth,  async(req, res) => {
 
     if(!image) {
         return res.status(400).json({message: "no image found"}) 
-        return
+        return  
     }
     await cloudinary.uploader.destroy(image.public_id) 
     await image.deleteOne() 
@@ -101,27 +94,4 @@ try{
 
 //Videos routes below 
 
-post.post('/video', uploadVideo.single("video"), isAuth, async(req, res) => {
-try {
-if(!req.file) {
-return res.status(400).json({message: "Please provide a video"})
-}
-
-const {caption} = req.body
-
-const results = await cloudinary.uploader.upload(req.file.buffer)  
-
-const newVideo = new Video({
-    video: results.secure_url, 
-    public_id: results.public_id,
-    caption, 
-    user: req.user._id
-})
-
-const savedVideo = await newVideo.save() 
-res.status(201).json({video: savedVideo})
-}catch(err) {
-    console.log(err)
-}
-})
 export default post

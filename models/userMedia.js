@@ -8,6 +8,14 @@ const MediaSchema = new mongoose.Schema({
    user: {
     type: mongoose.Schema.Types.ObjectId, 
     ref: "User"
+   }, 
+   username : {
+      type: mongoose.Schema.Types.String, 
+      ref: "User"
+   }, 
+   name: {
+      type: mongoose.Schema.Types.String, 
+      ref: "User"
    }
 }) 
 

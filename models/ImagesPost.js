@@ -9,6 +9,10 @@ const ImagePosts = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, 
     ref: "User"
    }, 
+  username: {
+  type: mongoose.Schema.Types.String, 
+  ref: "User"
+  },
    createdAt: {
     type: Date,
     default: Date.now,

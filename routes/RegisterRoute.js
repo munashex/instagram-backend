@@ -10,7 +10,7 @@ import isAuth from '../middlewares/authUser.js'
 const router = express.Router() 
 
 const generateToken = (user) => {
-    return jwt.sign({_id: user._id, username: user.username}, process.env.JWT_SECRET, {expiresIn: '90d'} )
+    return jwt.sign({_id: user._id, username: user.username, name: user.name}, process.env.JWT_SECRET, {expiresIn: '90d'} )
 }
 
 router.post('/register', async(req, res) => {
