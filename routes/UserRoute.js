@@ -129,12 +129,19 @@ user.get('/users', async(req, res) => {
 user.post('/follow/:id', isAuth,  async(req, res) => {
   try {
     const currentUser = await User.findById(req.user._id) 
-    const userToFollow = await User.findById(req.params.id) 
+    const userToFollow = await User.findById(req.params.id)  
+  
+    
 
     if(!currentUser || !userToFollow) {
         res.status(404).json({message: "User not found"}) 
         return
     } 
+
+    if(currentUser.following.includes(userToFollow._id)) {
+        res.status(400).json({message: "you follow this user"}) 
+        return
+    }
 
     currentUser.following.push(userToFollow) 
     userToFollow.followers.push(currentUser) 
@@ -176,6 +183,152 @@ if(!currentUser.following.includes(userToUnFollow._id)) {
     console.log(err.message) 
     res.status(400).json(err.message)
 }
+})
+
+
+//endpoint to get user following 
+user.get('/following/:userId', isAuth,  async(req, res) => {
+    try {
+     const userId = req.params.userId 
+     const user = await User.findById(userId) 
+     
+     if(!user) {
+        res.status(404).json({message: 'user not found'}) 
+        return
+     } 
+     
+     
+    const users = await Media.find({user: user.following})  
+    if(!users) {
+        res.status(400).json({message: 'you dont follow any user'}) 
+        return
+    }
+    res.status(200).json(users)
+    }catch(err) { 
+        console.log(err)
+    }
+})
+
+user.get('/followers/:userId', isAuth,  async(req, res) => {
+    try {
+     const userId = req.params.userId 
+     const user = await User.findById(userId) 
+     
+     if(!user) {
+        res.status(404).json({message: 'user not found'}) 
+        return
+     } 
+     
+     
+    const users = await Media.find({user: user.followers})  
+    if(!users) {
+        res.status(400).json({message: 'you dont have followers'}) 
+        return
+    }
+    res.status(200).json(users)
+    }catch(err) { 
+        console.log(err)
+    }
+})
+
+//routes for like and unlike image
+user.post('/like/:imageId', isAuth, async(req, res) => {
+    try {
+    const user = await User.findById(req.user._id)  
+    const imageId = await ImagePost.findById(req.params.imageId)
+    if(!user) { 
+        res.status(404).json({message: "User not found"})
+        return
+    }
+
+    if(!imageId) {
+        res.status(404).json({message: "Image not found"}) 
+        return
+    } 
+
+    if(imageId.likes.includes(user._id)) {
+        res.status(400).json({message: "you liked this image"}) 
+        return
+    }
+
+    imageId.likes.push(user._id) 
+    const results = await imageId.save() 
+    res.status(200).json({results})
+    }catch(err) { 
+    res.status(500).json(err.message)
+    console.log(err)
+    }
+})
+
+user.post('/unlike/:imageId', isAuth, async(req, res) => {
+    try {
+   const imageId = await ImagePost.findById(req.params.imageId) 
+   const user = await User.findById(req.user._id) 
+
+   if(!user) { 
+    res.status(404).json({message: "User not found"})
+    return
+   }
+
+
+  if(!imageId) {
+    res.status(404).json({message: "Image not found"}) 
+    return
+  } 
+
+     imageId.likes.pull(user._id) 
+    const results = await imageId.save() 
+    res.status(200).json({results})
+   
+    }catch(err) {
+        console.log(err.message) 
+        res.status(500).json(err.message)
+    }
+})
+
+//endpoints for comments 
+user.post("/comment/:imageId", isAuth, async(req, res) => {
+ try {
+const {comment} = req.body
+ const currentUser = await User.findById(req.user._id) 
+ const imageId = await ImagePost.findById(req.params.imageId) 
+
+ if(!currentUser) {
+    res.status(400).json({message: 'user not found'}) 
+    return
+ }
+ 
+ if(!imageId) {
+    res.status(400).json({message: 'image not found'}) 
+    return
+ }
+
+ imageId.comments.push({comment: comment, user: req.user.username}) 
+ const results = await imageId.save() 
+ res.status(201).json({comments: results})
+
+ }catch(err) {
+    console.log(err) 
+    res.status(500).json(err.message)
+ }
+})
+
+
+//endpoint to get single image comments byId 
+user.get("/comments/:imageId", async (req, res) => {
+    try {
+     const imageId = await ImagePost.findById(req.params.imageId) 
+
+     if(!imageId) {
+      res.status(400).json({message: 'image not found'}) 
+      return
+     }
+
+     res.status(200).json(imageId)
+    }catch(err) {
+        console.log(err) 
+        res.status(500).json(err.message)
+    }
 })
 
 export default user
