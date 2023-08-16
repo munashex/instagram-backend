@@ -25,5 +25,5 @@ comments: [{
 }) 
 
 
-const ImagePost = mongoose.model("images", ImagePosts) 
-export default  ImagePost
+const  ImagePost = mongoose.model("images", ImagePosts)  
+export default ImagePost

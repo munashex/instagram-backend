@@ -16,7 +16,26 @@ cloudinary.config({
 
 const upload = multer({dest: 'uploads/'})
 
-// starting from here to line 98 its about crud operation for single user
+
+
+
+// starting from here to line 98 its about crud operation for single user 
+
+user.get('/username/:username',  async (req, res) => {
+ try { 
+ const user = await Media.findOne({username: req.params.username}) 
+
+ if(!user) {
+    return res.status(400).json({message: 'User not found'}) 
+    return
+ }
+ 
+ res.status(200).json({user})
+ }catch(err) {
+    console.log(err)
+ }
+})
+
 user.get('/profile/:userId', isAuth, async(req, res) => { 
  try {
     const userId = req.params.userId 
@@ -34,7 +53,21 @@ user.get('/profile/:userId', isAuth, async(req, res) => {
  }
 })
 
+user.get("/userprofile/:id", async(req, res) => {
+    try {
+    const media = await Media.findOne({user: req.params.id})  
+    const user = await User.findById(req.params.id) 
+    const images = await ImagePost.find({user: req.params.id})
 
+    if(!media || !user  ) {
+        res.status(200).json({message: 'user info not found'})
+    } 
+
+    res.status(200).json({media, user, images})
+    }catch(err) {
+    console.log(err.message) 
+    }
+})
 
 user.post('/profile', upload.single("image"), isAuth,  async(req, res) => { 
  try {
@@ -109,20 +142,22 @@ fs.unlinkSync(req.file.path)
 
 
 //endpoint for all users
-user.get('/users', async(req, res) => {
+user.get('/users', async (req, res) => {
     try {
-    const users = await ImagePost.find() 
-    
-    if(!users) { 
-        res.status(400).json({message: 'no users'})
-        return
-    }  
-    res.status(200).json({users: users}) 
-    }catch(err) { 
-   res.status(500).json({message: err.message})
-  console.log(err)
+      const users = await ImagePost.find();
+  
+      if (!users) {
+        res.status(400).json({ message: 'No users found' });
+        return;
+      }
+  
+      res.status(200).json({ users: users });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+      console.log(err);
     }
-})
+  });
+  
 
 
 //endpoints for following someone 
